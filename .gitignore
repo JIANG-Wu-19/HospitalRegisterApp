@@ -1,2 +1,5 @@
 report/*.docx
 report/*.pdf
+
+previewReport/**/*.docx
+previewReport/**/*.pdf

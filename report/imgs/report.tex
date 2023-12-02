@@ -7,15 +7,6 @@
 \usepackage{subfigure}
 \usepackage{pdfpages}
 \usepackage{listings}
-\usepackage{afterpage}
-
-\newcommand\myemptypage{
-    \null
-    \thispagestyle{empty}
-    \addtocounter{page}{-1}
-    \newpage
-}
-
 \hypersetup{
     hidelinks,
 	colorlinks=true,
@@ -64,12 +55,9 @@
     \includepdf[pages={1}]{cover.pdf}
 \end{titlepage}
 
-\myemptypage
-
 \begin{center}
     \tableofcontents
 \end{center}
-
 \newpage
 
 \section{问题描述}
@@ -187,6 +175,8 @@
 \subsubsection{user表}
 user表的主要字段有uid，uname，upsw，分别代表用户id，用户名，密码
 
+\newpage
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.6\textwidth]{imgs/5.png}
@@ -208,6 +198,8 @@ user表的主要字段有uid，uname，upsw，分别代表用户id，用户名�
 \subsubsection{doctor表}
 
 doctor表的主要字段有did，dname，dlevel，dinfo，departid，sex，ddetail分别代表医生id，医生姓名，医生职级，医生简介，医生所属科室id，医生性别，医生详细信息
+
+\newpage
 
 \begin{figure}[htbp]
     \centering

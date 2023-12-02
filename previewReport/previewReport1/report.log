@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022) (preloaded format=xelatex 2022.11.21)  2 DEC 2023 15:25
+This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022) (preloaded format=xelatex 2022.11.21)  2 DEC 2023 15:27
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -549,34 +549,43 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 \tf@toc=\write4
 \openout4 = `report.toc'.
 
- [1] [2] [3] [4] [5]
+ [1] [2]
 File: imgs/1.png Graphic file (type bmp)
 <imgs/1.png>
- [6] [7] [8]
+ [3]
+File: imgs/2.png Graphic file (type bmp)
+<imgs/2.png>
+ [4]
+File: imgs/3.png Graphic file (type bmp)
+<imgs/3.png>
+ [5]
+File: imgs/4.png Graphic file (type bmp)
+<imgs/4.png>
+ [6] [7]
 File: imgs/5.png Graphic file (type bmp)
 <imgs/5.png>
+ [8]
 File: imgs/6.png Graphic file (type bmp)
 <imgs/6.png>
- [9]
 File: imgs/7.png Graphic file (type bmp)
 <imgs/7.png>
- [10] [11]
+ [9] [10]
 File: imgs/8.png Graphic file (type bmp)
 <imgs/8.png>
- [12]
+ [11]
 File: imgs/9.png Graphic file (type bmp)
 <imgs/9.png>
- [13] [14] [15] [16] [17] [18] [19] (./report.aux)
+ [12] (./report.aux)
 Package rerunfilecheck Info: File `report.out' has not changed.
-(rerunfilecheck)             Checksum: 95910576B609F06F7F30BB2F1BB60323;2294.
+(rerunfilecheck)             Checksum: F70905B620FA4529E4B66EB304AB8176;2530.
  ) 
 Here is how much of TeX's memory you used:
- 16478 strings out of 476179
- 346338 string characters out of 5813071
+ 16456 strings out of 476179
+ 343104 string characters out of 5813071
  990282 words of memory out of 5000000
- 36986 multiletter control sequences out of 15000+600000
+ 36961 multiletter control sequences out of 15000+600000
  474173 words of font info for 62 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 89i,17n,97p,365b,1628s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 89i,17n,97p,365b,1596s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on report.pdf (21 pages).
+Output written on report.pdf (14 pages).
