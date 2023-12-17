@@ -143,11 +143,18 @@
     \caption{看病预约应用用例图}
 \end{figure}
 
-
-
 \newpage
 
 \section{设计思想}
+设计采用前后端分离的思想，即前端使用Android客户端，后端使用JSP服务器，数据持久化使用MySQL分表存储所有数据。
+
+前端只负责与用户进行交互，后端负责处理用户的请求、验证并返回数据，同时后端负责对数据库的操作，包括表中记录的增删查改。前端不存储数据，减少了用户端的存储空间，减少了用户端的开发难度，同时保证了数据的安全性。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imgs/2.png}
+    \caption{前后端分离架构图}
+\end{figure}
 
 \newpage
 
@@ -199,7 +206,7 @@ user表的主要字段有uid，uname，upsw，分别代表用户id，用户名�
 +-------+--------------+------+-----+---------+-------+
 | Field | Type         | Null | Key | Default | Extra |
 +-------+--------------+------+-----+---------+-------+
-| uid   | varchar(255) | NO   | PRI | NULL    |       |
+| uid   | int(11)      | NO   | PRI | NULL    |       |
 | uname | varchar(255) | NO   |     | NULL    |       |
 | upsw  | varchar(255) | NO   |     | NULL    |       |
 +-------+--------------+------+-----+---------+-------+
@@ -303,7 +310,707 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
 
 \newpage
 
-\subsection{Android看病预约客户端详细设计}
+\subsection{Android看病预约客户端界面设计}
+\subsubsection{界面设计流程图}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{imgs/3.png}
+    \caption{Android看病预约客户端界面设计流程图}
+\end{figure}
+
+\newpage
+
+\subsubsection{启动界面}
+在程序启动的时候，需要一个启动界面，用于展示程序的logo，同时在启动界面中进行一些初始化操作，设置3s自动关闭启动界面。启动界面并不需要做的很复杂，只需要设计一个背景，然后添加一个按钮用于跳过启动界面即可。
+
+设计的XML代码如下：
+
+\begin{lstlisting}
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.activity.SplashActivity"
+    android:background="@mipmap/splashbg">
+    <Button
+        android:id="@+id/id_btn_skip"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_marginRight="32dp"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/btn_bg_skip"
+        android:paddingBottom="4dp"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:paddingTop="4dp"
+        android:text="跳过"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:textColor="#ffffff"
+        android:textSize="14sp" />
+</RelativeLayout>
+\end{lstlisting}
+
+界面效果如下：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imgs/10.png}
+    \caption{启动界面}
+\end{figure}
+
+\subsubsection{登录界面}
+登录界面需要设计一个背景，然后添加一个logo，接着添加两个输入框，分别用于输入用户名和密码，最后添加一个登录按钮。需要注意的是，在登录界面需要额外设置一个按钮，用于跳转到注册界面。
+\begin{lstlisting}
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.activity.LoginActivity"
+    android:background="@mipmap/login_bg">
+    <TextView
+        android:id="@+id/id_tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="90dp"
+        android:text="掌上医院"
+        android:textSize="40sp"
+        android:textStyle="bold"></TextView>
+    <EditText
+        android:paddingLeft="20dp"
+        android:id="@+id/id_et_uid"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_below="@id/id_tv_title"
+        android:layout_marginTop="40dp"
+        android:background="#44ffffff"
+        android:hint="请输入账号"
+        android:inputType="text"
+        android:textColorHint="#070707" />
+    <EditText
+        android:paddingLeft="20dp"
+        android:id="@+id/id_et_upsw"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_below="@id/id_et_uid"
+        android:layout_marginTop="4dp"
+        android:background="#44ffffff"
+        android:hint="请输入密码"
+        android:inputType="textWebPassword"
+        android:textColorHint="#070707" />
+    <Button
+        android:id="@+id/id_btn_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/id_et_upsw"
+        android:layout_marginLeft="60dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginRight="60dp"
+        android:background="#87CEFA"
+        android:text="登录"
+        android:textSize="26sp" />
+    <TextView
+        android:id="@+id/id_tv_register"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/id_btn_login"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:text="注册账号"
+        android:textSize="18sp"
+        android:textColor="#000000" />
+</RelativeLayout>
+\end{lstlisting}
+
+以上是登录界面的XML代码，界面效果如下：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.3\textwidth]{imgs/11.png}
+    \caption{登录界面}
+\end{figure}
+
+\subsubsection{注册界面}
+注册界面需要设计一个背景，然后添加一个logo，接着添加四个输入框，分别用于输入用户姓名、用户名、密码、重复密码，最后添加一个注册按钮。需要注意的是，在注册界面需要额外设置一个按钮，用于跳转到登录界面。
+
+这里的XML源码比较长，不进行展示，界面效果如下：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.2\textwidth]{imgs/12.png}
+    \caption{注册界面}
+\end{figure}
+
+\subsubsection{用户首页}
+用户首页设置一个背景，然后添加一个logo，接着添加三个按钮，分别用于跳转到预约挂号、我的信息、退出登录。目前只对用户首页进行了简单设计，并没有添加美化内容，只展示一个原型界面
+
+实现的XML代码如下：
+
+\begin{lstlisting}
+    <?xml version="1.0" encoding="utf-8"?>
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".ui.activity.IndexActivity"
+        android:background="@mipmap/login_bg"
+    
+        >
+        <TextView
+            android:id="@+id/welcome_uname"
+            android:layout_marginTop="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="李明，欢迎您！"
+            android:gravity="center"
+            android:textSize="26sp"
+            android:textColor="@color/black"
+            ></TextView>
+        <Button
+            android:id="@+id/btn1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="预约挂号"
+            android:layout_marginTop="30dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:textSize="26sp"
+            android:background="#87CEFA"
+            />
+    
+        <Button
+            android:id="@+id/btn2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="我的信息"
+    
+            android:layout_marginTop="50dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:textSize="26sp"
+            android:background="#87CEFA"/>
+        <Button
+            android:id="@+id/btn3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="退出账号"
+    
+            android:layout_marginTop="50dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:textSize="26sp"
+            android:background="#87CEFA"/>
+    </LinearLayout>
+\end{lstlisting}
+
+界面效果如下：
+
+\newpage
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imgs/13.png}
+    \caption{用户首页}
+\end{figure}
+
+用户在预约挂号时，展现的科室列表、医生列表实际是一致的，在顶部标题处作区分，这里只展示科室列表设计。
+
+\subsubsection{科室列表}
+科室列表是一个列表，需要设计一个背景，然后添加一个logo，接着添加一个列表，用于展示科室列表
+
+实现的XML代码如下：
+
+\newpage
+
+\begin{lstlisting}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.activity.ChooseDepartActivity"
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="40dp">
+        <ImageView
+            android:id="@+id/btn_back"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@mipmap/btn_back"></ImageView>
+    </LinearLayout>
+    <ListView
+        android:id="@+id/depart_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"></ListView>
+</LinearLayout>
+\end{lstlisting}
+
+在列表的顶部作区分，部门、医生列表的顶部没有特殊设计，排班时间选择的时候，顶部打印了当前选择的医生信息。
+
+\newpage
+
+\subsection{Android看病预约客户端操作实现}
+\subsubsection{启动界面}
+用户点击软件图标之后，先进入启动页面，展示图标和软件名称，然后跳转到登录界面，右上角有一个跳过按钮，点击之后直接跳转到主界面。
+
+实现activity为SplashActivity，点击“跳过”时，直接跳转到登录页面，具体如下：
+
+\begin{lstlisting}[frame=shadowbox]
+    public class SplashActivity extends AppCompatActivity {
+
+    private Handler mHandler = new Handler();
+    private Button mBtnSkip;
+
+    private Runnable mRunnableToMain = new Runnable() {
+        @Override
+        public void run() {
+            toLoginActivity();
+        }
+    };
+
+    private void toLoginActivity() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_splash);
+
+        mBtnSkip = (Button) findViewById(R.id.id_btn_skip);
+        mHandler.postDelayed(mRunnableToMain, 3000);
+
+        mBtnSkip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mHandler.removeCallbacks(mRunnableToMain);
+                toLoginActivity();
+            }
+        });
+
+    }
+}
+
+\end{lstlisting}
+
+\subsubsection{登录/注册界面}
+用户经过启动页面之后，进入登录页面，用户根据自身需求选择：跳转到注册界面，或直接输入账号密码进行登录。
+
+若跳转到注册界面，用户输入账号密码，点击注册按钮，将账号密码发送到服务器，服务器返回注册成功或失败的信息，若成功，则跳转到登录界面，若失败，则提示用户注册失败。
+
+若直接登录，则用户输入账号密码，点击登录按钮，将账号密码发送到服务器，服务器返回登录成功或失败的信息，若成功，则跳转到主界面，若失败，则提示用户登录失败。
+
+具体的流程图如下：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/14.png}
+    \caption{登录/注册流程图}
+\end{figure}
+
+\newpage
+
+在应用端只负责提交数据，不负责验证数据，验证数据的工作交给服务器端，也就是说应用端只需要提取输入框的输入即可，返回的提示用toast实现，具体代码如下：
+
+\begin{lstlisting}[frame=shadowbox]
+    public String requestDataByPost(String urlString) {
+        String result = null;
+        try {
+            URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(30000);
+            connection.setRequestMethod("POST");
+
+            // 设置运行输入,输出:
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+            // Post方式不能缓存,需手动设置为false
+            connection.setUseCaches(false);
+            connection.connect();
+
+            // 我们请求的数据:
+            String data = "uid=" + URLEncoder.encode(uid, "UTF-8")
+                    + "&upsw=" + URLEncoder.encode(upsw, "UTF-8");
+            // 获取输出流
+            OutputStream out = connection.getOutputStream();
+            out.write(data.getBytes());
+            out.flush();
+            out.close();
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                InputStream inputStream = connection.getInputStream();
+                result = NetUtil.streamToString(inputStream);
+
+                user = new Gson().fromJson(result,User.class);
+
+
+            } else {
+                String responseMessage = connection.getResponseMessage();
+
+            }
+
+
+            connection.disconnect();
+            return result;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+\end{lstlisting}
+
+注册与登录类似，唯一不同的是请求的数据不同，注册需要提交的数据有uid，upsw，uname，而登录只需要提交uid，upsw即可。
+
+\begin{lstlisting}[frame=shadowbox]
+    String data ="uname=" + URLEncoder.encode(uname, "UTF-8") +  "&uid=" + URLEncoder.encode(uid, "UTF-8")
+    + "&upsw=" + URLEncoder.encode(upsw, "UTF-8");
+\end{lstlisting}
+
+\subsubsection{预约界面}
+预约分为三步
+\begin{enumerate}
+    \item 选择科室
+    \item 选择医生
+    \begin{itemize}
+        \item 查看医生详细介绍
+    \end{itemize}
+    \item 选择时间
+\end{enumerate}
+
+\textbf{选择科室}
+
+向后端请求科室数据，获取科室List，然后将科室List展示在列表中，用户点击列表中的某一项，跳转到医生列表界面，同时将用户选择的科室信息传递到医生列表界面，用于向后端请求医生列表数据。
+
+实现方法如下：
+
+\begin{lstlisting}[frame=shadowbox]
+    public class DepartListAdapter extends BaseAdapter{
+        private List<Depart> mdeparts;
+        DepartListAdapter(List<Depart> departs){
+            mdeparts = departs;
+        }
+        @Override
+        public int getCount() {
+            return mdeparts.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return mdeparts.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return mdeparts.get(i).getDepartid();
+        }
+
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+
+            if(view == null){
+                LayoutInflater layoutInflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                view = layoutInflater.inflate(R.layout.item_depart_list_view,null);
+            }
+            TextView departName = view.findViewById(R.id.depart_name_tv);
+            departName.setText(mdeparts.get(i).getDepartname());
+
+            departName.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(ChooseDepartActivity.this,ChooseDoctorActivity.class);
+                    intent.putExtra("depart",new Gson().toJson(mdeparts.get(i)));
+                    startActivity(intent);
+
+
+                }
+            });
+
+            return view;
+        }
+    }
+\end{lstlisting}
+
+\textbf{选择医生}
+
+向后端请求医生数据，获取医生List，然后将医生List展示在列表中，用户点击列表中的某一项，跳转到排班时间选择界面，同时将用户选择的医生信息传递到排班时间选择界面，用于向后端请求排班时间数据。
+
+实现方法如下：
+
+\begin{lstlisting}[frame=shadowbox]
+    public class DoctorListAdapter extends BaseAdapter {
+        private List<Doctor> mdoctors;
+        DoctorListAdapter(List<Doctor> doctors){
+            mdoctors = doctors;
+        }
+        @Override
+        public int getCount() {
+            return mdoctors.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return mdoctors.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return mdoctors.get(i).getDid();
+        }
+
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+
+            if(view == null){
+                LayoutInflater layoutInflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                view = layoutInflater.inflate(R.layout.item_doctor_list_view,null);
+            }
+            ImageView dimg = view.findViewById(R.id.dimg);
+            TextView dname = view.findViewById(R.id.dname);
+            TextView dlevel = view.findViewById(R.id.dlevel);
+            TextView dinfo = view.findViewById(R.id.dinfo);
+
+            LinearLayout btn_ddetail = view.findViewById(R.id.btn_ddetail);
+            Button btn_reverse = view.findViewById(R.id.btn_reverse);
+
+
+            if(mdoctors.get(i).getSex()==1){
+                dimg.setImageResource(R.mipmap.doctor_male);
+            }
+            else{
+                dimg.setImageResource(R.mipmap.doctor_female);
+            }
+            dname.setText(mdoctors.get(i).getDname());
+            dlevel.setText(mdoctors.get(i).getDlevel());
+            dinfo.setText(mdoctors.get(i).getDinfo());
+
+
+            btn_ddetail.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(ChooseDoctorActivity.this,DoctorDetailActivity.class);
+                    intent.putExtra("doctor",new Gson().toJson(mdoctors.get(i)));
+                    startActivity(intent);
+                }
+            });
+
+            btn_reverse.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(ChooseDoctorActivity.this,ChooseTimeActivity.class);
+                    intent.putExtra("doctor",new Gson().toJson(mdoctors.get(i)));
+                    startActivity(intent);
+                }
+            });
+
+            return view;
+        }
+    }
+\end{lstlisting}
+
+\textbf{医生详细介绍}
+
+医生详细介绍界面只是简单的展示医生的详细介绍，没有其他操作，只需要获取医生的数据，然后展示即可。
+
+\begin{lstlisting}[frame=shadowbox]
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_doctor_detail);
+        String doctorJson = getIntent().getStringExtra("doctor");
+        doctor =  new Gson().fromJson(doctorJson, Doctor.class);
+        Log.e("DoctorDetailActivity","传来的数据："+ doctor);
+        ImageView dimg = findViewById(R.id.dimg);
+        TextView dname = findViewById(R.id.dname);
+        TextView dlevel = findViewById(R.id.dlevel);
+        TextView dinfo = findViewById(R.id.dinfo);
+        TextView ddetail = findViewById(R.id.ddetail);
+        if(doctor.getSex()==1){
+            dimg.setImageResource(R.mipmap.doctor_male);
+        }
+        else{
+            dimg.setImageResource(R.mipmap.doctor_female);
+        }
+        dname.setText(doctor.getDname());
+        dlevel.setText(doctor.getDlevel());
+        dinfo.setText(doctor.getDinfo());
+        ddetail.setText(doctor.getDdetail());
+
+        ImageView btn_back = findViewById(R.id.btn_back);
+        btn_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(DoctorDetailActivity.this,ChooseDoctorActivity.class);
+                intent.putExtra("departid",doctor.getDdepartid());
+                startActivity(intent);
+            }
+        });
+    }
+\end{lstlisting}
+
+\textbf{选择时间}
+
+根据选择的医生，向后端请求排班时间数据，获取排班时间List，然后将排班时间List展示在列表中，用户点击列表中的某一项，跳转到支付界面，同时将用户选择的排班时间信息传递到支付界面，用于向后端请求支付数据。实际的获取列表方式和前面一致，修改传入参数就可以了。
+
+\subsubsection{支付界面}
+支付界面展示之前的选择结果，设置两个按钮监听器，一个用于支付，一个用于取消支付，点击支付按钮，向后端请求支付数据，获取支付数据，然后调用支付接口，调用成功则提示用户支付成功，调用失败则提示用户支付失败，点击取消支付按钮，直接跳转到用户首页。
+
+这里看一下两个按钮的监听器，支付按钮的监听器如下：
+
+\begin{lstlisting}[frame=shadowbox]
+    pay_yes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                baseurl += "?sid="+schedule.getSid()+"&uid="+user.getUid();
+                Toast.makeText(getBaseContext(),"预约挂号成功！",Toast.LENGTH_SHORT).show();
+                new PayActivity.PayAsyncTask().execute();
+
+            }
+        });
+\end{lstlisting}
+
+取消支付按钮的监听器如下：
+
+\begin{lstlisting}[frame=shadowbox]
+    pay_no.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            Toast.makeText(getBaseContext(),"预约挂号取消成功！",Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(PayActivity.this,ChooseTimeActivity.class);
+            intent.putExtra("doctor",new Gson().toJson(doctor));
+            startActivity(intent);
+        }
+    });
+\end{lstlisting}
+
+\subsubsection{我的信息界面}
+主要用于显示已经预约的结果，向后端请求预约数据，获取预约数据，然后将预约数据展示在列表中，用户点击列表中的某一项，跳转到预约详情界面，同时将用户选择的预约信息传递到预约详情界面，用于展示预约详情。
+
+\begin{lstlisting}[frame=shadowbox]
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_my_info);
+        user =  new Gson().fromJson( getIntent().getStringExtra("user"), User.class);
+        TextView uname = findViewById(R.id.welcome_uname);
+        ImageView btn_back = findViewById(R.id.btn_back);
+        myInfoListView = findViewById(R.id.myinfo_list_view);
+        btn_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MyInfoActivity.this,IndexActivity.class);
+                intent.putExtra("user",new Gson().toJson(user));
+                startActivity(intent);
+            }
+        });
+        if(user!=null){
+            uname.setText(""  + user.getUname() + "，欢迎您！");
+        }
+        baseurl= baseurl + "?uid="+user.getUid();
+        new MyInfoActivity.MyinfoAsyncTask().execute();
+    }
+\end{lstlisting}
+
+\newpage
+
+\subsection{配置android网络}
+android 和web 服务器的数据交互，涉及到android 的网络相关操作，可以选择使用第三方库或者自己编写简单的代码实现。我采用了自己编写代码，并抽取到工具类NetUtil中。
+
+\subsubsection{配置baseurl}
+首先配置类Config，里面存储了访问服务器用的url中基础的部分，本实践采用了主机作服务器，其中由于主机连接WLAN，而非有线的Ethernet，因此ip地址会变化；对于实际的工程来说，服务器的ip应当是固定的，不存在以上问题。
+
+\begin{lstlisting}[frame=shadowbox]
+    public class Config {
+        public static String baseUrl ="http://100.67.123.30:8080/PalmHospitalService_war_exploded/";
+    }
+\end{lstlisting}
+
+这样在其他类中，只需要将url加上这一部分，修改代码很方便。
+
+\subsubsection{编写工具类NetUtil}
+接着编写工具类NetUtil：由于数据量不大，我们都采用Get 的请求方式，将参数添加在url 末尾。编写函数requestDataByGet：参数url，进行HttpURLConnection 的相关设置，获取请求的返回码，判断是否成功等等
+
+\begin{lstlisting}[frame=shadowbox]
+    package com.example.palmhospital.utils;
+
+    import android.util.Log;
+
+    import java.io.ByteArrayOutputStream;
+    import java.io.IOException;
+    import java.io.InputStream;
+    import java.net.HttpURLConnection;
+    import java.net.MalformedURLException;
+    import java.net.URL;
+    
+    public class NetUtil {
+        public static String requestDataByGet(String urlString) {
+            String result = null;
+            try {
+                URL url = new URL(urlString);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(30000);        // 设置超时时间
+                connection.setRequestMethod("GET");  // 请求的方法类型：GET POST
+                connection.setRequestProperty("Content-Type", "application/json");      // 获取到的数据格式
+                connection.setRequestProperty("Charset", "UTF-8");
+                connection.setRequestProperty("Accept-Charset", "UTF-8");
+                connection.connect();       // 发起连接
+                int responseCode = connection.getResponseCode();    // 获取请求的返回码
+                if (responseCode == HttpURLConnection.HTTP_OK) {        // 返回码是200，成功
+                    InputStream inputStream = connection.getInputStream();
+                    result = streamToString(inputStream);
+                } else {
+                    String responseMessage = connection.getResponseMessage();
+                    //Log.e(TAG, "requestDataByPost: " + responseMessage);
+                }
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return result;
+        }
+        /**
+         * 将输入流转换成字符串
+         *
+         * @param is 从网络获取的输入流
+         * @return 字符串
+         */
+        public static String streamToString(InputStream is) {
+            try {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = is.read(buffer)) != -1) {
+                    baos.write(buffer, 0, len);
+                }
+                baos.close();
+                is.close();
+                byte[] byteArray = baos.toByteArray();
+                return new String(byteArray);
+            } catch (Exception e) {
+                Log.e("LoginActivity", e.toString());
+                return null;
+            }
+        }
+    }    
+\end{lstlisting}
 
 \newpage
 
