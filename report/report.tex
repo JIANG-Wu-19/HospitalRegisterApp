@@ -8,6 +8,9 @@
 \usepackage{pdfpages}
 \usepackage{listings}
 \usepackage{afterpage}
+\usepackage{geometry}
+
+\geometry{a4paper,scale=0.8}
 
 \newcommand\myemptypage{
     \null
@@ -99,8 +102,6 @@
     \item 在线挂号支付
 \end{enumerate}
 
-\newpage
-
 \section{需求分析}
 \subsection{开发环境}
 \begin{itemize}
@@ -111,9 +112,13 @@
     \\集成环境：Intellij IDEA 2023.1.4
     \\JDK 17.0.4.1
     \\Tomcat 9.0.55
+    \\Servlet
     \item Android客户端
     \\集成环境：Android Studio 2022.3.1
     \\Android SDK 31.0.0
+    \item 后台管理系统
+    \\JSP
+    \\LayUI
 \end{itemize}
 
 \subsection{用例分析}
@@ -139,20 +144,20 @@
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.6\textwidth]{imgs/1.png}
+    \includegraphics[width=0.9\textwidth]{imgs/1.png}
     \caption{看病预约应用用例图}
 \end{figure}
 
 \newpage
 
 \section{设计思想}
-设计采用前后端分离的思想，即前端使用Android客户端，后端使用JSP服务器，数据持久化使用MySQL分表存储所有数据。
+设计采用前后端分离的思想，即前端使用Android客户端，后端使用Tomcat服务器，后台管理系统使用layui编写，数据持久化使用MySQL分表存储所有数据。
 
 前端只负责与用户进行交互，后端负责处理用户的请求、验证并返回数据，同时后端负责对数据库的操作，包括表中记录的增删查改。前端不存储数据，减少了用户端的存储空间，减少了用户端的开发难度，同时保证了数据的安全性。
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.5\textwidth]{imgs/2.png}
+    \includegraphics[width=1.0\textwidth]{imgs/15.png}
     \caption{前后端分离架构图}
 \end{figure}
 
@@ -167,6 +172,7 @@
 +--------------------+
 | Tables_in_hospital |
 +--------------------+
+| administrator      |
 | depart             |
 | doctor             |
 | myorder            |
@@ -175,7 +181,7 @@
 +--------------------+
 \end{lstlisting}
 
-五个表中的作用如下：
+六个表中的作用如下：
 
 \begin{itemize}
     \item user表：存储用户相关信息
@@ -183,6 +189,29 @@
     \item doctor表：存储医生相关信息
     \item schedule表：存储医生的排班信息
     \item myorder表：存储用户的预约挂号信息
+    \item admistrator表：存储管理员信息
+\end{itemize}
+
+\subsection{Android看病预约客户端概要设计}
+包括以下几个界面：
+\begin{itemize}
+    \item 启动界面
+    \item 登录界面
+    \item 注册界面
+    \item 用户首页
+    \item 科室列表
+    \item 医生列表
+    \item 排班时间选择
+    \item 我的预约
+\end{itemize}
+
+\subsection{后台管理系统概要设计}
+包括以下几个界面：
+\begin{itemize}
+    \item 登录界面
+    \item 医生管理
+    \item 排班管理
+    \item 预约管理
 \end{itemize}
 
 \newpage
@@ -196,7 +225,7 @@ user表的主要字段有uid，uname，upsw，分别代表用户id，用户名�
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.6\textwidth]{imgs/5.png}
+    \includegraphics[width=1.0\textwidth]{imgs/5.png}
     \caption{user表}
 \end{figure}
 
@@ -212,13 +241,15 @@ user表的主要字段有uid，uname，upsw，分别代表用户id，用户名�
 +-------+--------------+------+-----+---------+-------+
 \end{lstlisting}
 
+\newpage
+
 \subsubsection{doctor表}
 
 doctor表的主要字段有did，dname，dlevel，dinfo，departid，sex，ddetail分别代表医生id，医生姓名，医生职级，医生简介，医生所属科室id，医生性别，医生详细信息
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\textwidth]{imgs/6.png}
+    \includegraphics[width=1.0\textwidth]{imgs/6.png}
     \caption{doctor表}
 \end{figure}
 
@@ -238,13 +269,15 @@ doctor表的主要字段有did，dname，dlevel，dinfo，departid，sex，ddeta
 +----------+--------------+------+-----+---------+-------+
 \end{lstlisting}
 
+\newpage
+
 \subsubsection{depart表}
 
 depart表的主要字段有departid，departname，分别代表科室id，科室名称
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{imgs/7.png}
+    \includegraphics[width=1.0\textwidth]{imgs/7.png}
     \caption{depart表}
 \end{figure}
 
@@ -259,15 +292,15 @@ depart表的主要字段有departid，departname，分别代表科室id，科室
 +------------+--------------+------+-----+---------+-------+
 \end{lstlisting}
 
+\newpage
+
 \subsubsection{schedule表}
 
 schedule表的主要字段有sid，did，time，price分别代表排班id，医生id，排班时间，挂号费
 
-\newpage
-
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{imgs/8.png}
+    \includegraphics[width=1.0\textwidth]{imgs/8.png}
     \caption{schedule表}
 \end{figure}
 
@@ -284,19 +317,17 @@ schedule表的主要字段有sid，did，time，price分别代表排班id，医�
 +-------+----------------+------+-----+---------+-------+
 \end{lstlisting}
 
+\newpage
+
 \subsubsection{myorder表}
 
 myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，医生id
 
-\newpage
-
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{imgs/9.png}
+    \includegraphics[width=1.0\textwidth]{imgs/9.png}
     \caption{myorder表}
 \end{figure}
-
-设计出的table结构如下
 
 \begin{lstlisting}[frame=shadowbox]
 +-------+--------------+------+-----+---------+-------+
@@ -306,6 +337,16 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
 | sid   | int(11)      | NO   |     | NULL    |       |
 | uid   | int(11)      | NO   |     | NULL    |       |
 +-------+--------------+------+-----+---------+-------+
+\end{lstlisting}
+
+\subsubsection{administrator表}
+\begin{lstlisting}[frame=shadowbox]
++----------+--------------+------+-----+---------+-------+
+| Field    | Type         | Null | Key | Default | Extra |
++----------+--------------+------+-----+---------+-------+
+| user     | varchar(255) | NO   |     | NULL    |       |
+| password | varchar(255) | NO   |     | NULL    |       |
++----------+--------------+------+-----+---------+-------+
 \end{lstlisting}
 
 \newpage
@@ -356,11 +397,13 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
 </RelativeLayout>
 \end{lstlisting}
 
+\newpage
+
 界面效果如下：
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.5\textwidth]{imgs/10.png}
+    \includegraphics[width=0.6\textwidth]{imgs/10.png}
     \caption{启动界面}
 \end{figure}
 
@@ -434,7 +477,7 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.3\textwidth]{imgs/11.png}
+    \includegraphics[width=0.4\textwidth]{imgs/11.png}
     \caption{登录界面}
 \end{figure}
 
@@ -445,7 +488,7 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.2\textwidth]{imgs/12.png}
+    \includegraphics[width=0.4\textwidth]{imgs/12.png}
     \caption{注册界面}
 \end{figure}
 
@@ -465,7 +508,6 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
         android:orientation="vertical"
         tools:context=".ui.activity.IndexActivity"
         android:background="@mipmap/login_bg"
-    
         >
         <TextView
             android:id="@+id/welcome_uname"
@@ -488,13 +530,11 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
             android:textSize="26sp"
             android:background="#87CEFA"
             />
-    
         <Button
             android:id="@+id/btn2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="我的信息"
-    
             android:layout_marginTop="50dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
@@ -505,7 +545,6 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="退出账号"
-    
             android:layout_marginTop="50dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
@@ -516,11 +555,9 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
 
 界面效果如下：
 
-\newpage
-
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.5\textwidth]{imgs/13.png}
+    \includegraphics[width=0.4\textwidth]{imgs/13.png}
     \caption{用户首页}
 \end{figure}
 
@@ -572,10 +609,8 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
 
 \begin{lstlisting}[frame=shadowbox]
     public class SplashActivity extends AppCompatActivity {
-
     private Handler mHandler = new Handler();
     private Button mBtnSkip;
-
     private Runnable mRunnableToMain = new Runnable() {
         @Override
         public void run() {
@@ -621,7 +656,7 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{imgs/14.png}
+    \includegraphics[width=0.6\textwidth]{imgs/14.png}
     \caption{登录/注册流程图}
 \end{figure}
 
@@ -901,6 +936,8 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
     });
 \end{lstlisting}
 
+\newpage
+
 \subsubsection{我的信息界面}
 主要用于显示已经预约的结果，向后端请求预约数据，获取预约数据，然后将预约数据展示在列表中，用户点击列表中的某一项，跳转到预约详情界面，同时将用户选择的预约信息传递到预约详情界面，用于展示预约详情。
 
@@ -951,14 +988,12 @@ android 和web 服务器的数据交互，涉及到android 的网络相关操作
     package com.example.palmhospital.utils;
 
     import android.util.Log;
-
     import java.io.ByteArrayOutputStream;
     import java.io.IOException;
     import java.io.InputStream;
     import java.net.HttpURLConnection;
     import java.net.MalformedURLException;
     import java.net.URL;
-    
     public class NetUtil {
         public static String requestDataByGet(String urlString) {
             String result = null;
@@ -986,12 +1021,6 @@ android 和web 服务器的数据交互，涉及到android 的网络相关操作
             }
             return result;
         }
-        /**
-         * 将输入流转换成字符串
-         *
-         * @param is 从网络获取的输入流
-         * @return 字符串
-         */
         public static String streamToString(InputStream is) {
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -1014,7 +1043,423 @@ android 和web 服务器的数据交互，涉及到android 的网络相关操作
 
 \newpage
 
+\subsection{后台管理系统前端详细设计}
+后台管理系统设计较为简便只需要设计一个登录/注册界面，一个控制台界面即可，控制台界面中用iframe标签嵌入其他页面，实现页面的跳转。
+
+包括以下jsp文件：
+
+\begin{itemize}
+    \item login.jsp 
+    \item register.jsp
+    \item controller.jsp
+    \item orders.jsp
+    \item schedules.jsp
+    \item doctors.jsp
+\end{itemize}
+
+比较需要关注的点是访问控制台界面的前置条件是登录了管理员的账号，也就是说，如果没有登录，是不能访问控制台界面的，因此需要在访问控制台界面的时候，判断是否登录，如果没有登录，则跳转到登录界面。
+
+在controller.jsp中以及其他嵌入的标签页中，都需要判断是否登录，如果没有登录，则跳转到登录界面。
+
+判断代码如下：
+
+\begin{lstlisting}[frame=shadowbox]
+<%
+    String user=(String) request.getSession().getAttribute("user");
+    if(user==null){
+        response.sendRedirect("login.jsp");
+        return;
+    }
+%>
+\end{lstlisting}
+
+在后台登录Servlet中需要设置session
+
+\begin{lstlisting}[frame=shadowbox]
+    request.getSession().setAttribute("user",user);
+\end{lstlisting}
+
+接下来将详细介绍控制台界面的设计
+
+\newpage
+
+\subsubsection{controller.jsp}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/17.png}
+    \caption{控制台界面}
+\end{figure}
+
+控制台界面的设计比较简单，只需要插入三个子页面，使用iframe标签嵌入，对点击时间进行区分，点击不同的按钮，加载不同的页面，实现页面的跳转。
+
+\begin{lstlisting}[frame=shadowbox]
+    <ul class="layui-nav layui-nav-tree" lay-filter="test">
+        <li class="layui-nav-item layui-nav-itemed">
+            <a class="main_left" data-src="orders.jsp">预约信息管理</a>
+        </li>
+
+        <li class="layui-nav-item layui-nav-itemed">
+            <a class="main_left" data-src="doctors.jsp">医生信息管理</a>
+        </li>
+
+        <li class="layui-nav-item layui-nav-itemed">
+            <a class="main_left" data-src="schedules.jsp">排班信息管理</a>
+        </li>
+    </ul>
+
+    ...
+
+    <iframe id="mainframe" frameborder="0" scrolling="yes" style="width: 100%;height: 100%" src="orders.jsp"> </iframe>
+
+    ... 
+
+    <script>
+    $(function(){
+        $(".main_left").click(function(){
+            var src = $(this).attr("data-src");
+            $("#mainframe").attr("src",src);
+        });
+    });
+    </script>
+\end{lstlisting}
+
+\subsubsection{orders.jsp}
+在挂号预约信息界面，需要展示所有的预约信息，包括预约id，用户id，用户姓名，科室名称，医生姓名，预约时间，挂号费等字段，同时需要提供删除预约信息的功能。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/18.png}
+    \caption{预约信息管理界面}
+\end{figure}
+
+表格数据实时动态渲染，使用layui的table模块，具体代码如下：
+
+\begin{lstlisting}[frame=shadowbox]
+    table.render({
+            elem: '#test',
+            url: 'http://localhost:8080/PalmHospitalService_war_exploded/OrderServlet', // 此处为静态模拟数据，实际使用时需换成真实接口
+            toolbar: '#toolbarDemo',
+            height: 'full-200', // 最大高度减去其他容器已占有的高度差
+            css: [ // 重设当前表格样式
+                '.layui-table-tool-temp{padding-right: 1000px;}'
+            ].join(''),
+            cellMinWidth: 80,
+            totalRow: false, // 开启合计行
+            page: false,
+            cols: [[
+                {type: 'checkbox', fixed: 'left'},
+                {field:'oid',width:130, title: '预约ID'},
+                {field:'uid',width:130, title: '用户ID'},
+                {field:'uname',width:150, title: '用户姓名'},
+                {field:'time',width:300, title: '挂号时间'},
+                {field:'departname',width:160, title: '科室名称'},
+                {field:'dname',width:130, title: '医生姓名'},
+                {field:'price',width:130, title: '挂号费用(元)'},
+                {fixed: 'right', title:'操作', width: 80, minWidth: 80, toolbar: '#barDemo'}
+            ]],
+
+            ...
+
+            error: function(res, msg){
+                console.log(res, msg)
+            }
+        });
+\end{lstlisting}
+
+在前端界面中，对于删除处理的操作，layui原生框架提供了类似操作的封装，对表格的toolbar进行设置，即可实现删除操作，具体代码如下：
+
+\begin{lstlisting}[frame=shadowbox]
+    table.on('tool(test)', function(obj){ // 双击 toolDouble
+            var data = obj.data; // 获得当前行数据
+            console.log(data)
+            if(obj.event === 'delete'){
+                layer.confirm('确定取消预约 [预约ID: '+ data.oid +'] ', function(index){
+                    const url1 = "http://localhost:8080/PalmHospitalService_war_exploded/DeleteOrdersServlet?oid=" + data.oid;
+                    // 使用 Fetch API 发起 DELETE 请求
+                    fetch(url1, {
+                        method: 'GET',
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                        })
+                        .then(() => {
+                            obj.del(); // 删除对应行（tr）的DOM结构
+                        })
+                        .catch(error => {
+                            // 请求失败时的处理
+                            console.error('There has been a problem with your fetch operation:', error);
+                        });
+
+                    // obj.del();
+                    layer.close(index);
+                    // 向服务端发送删除指令
+                })
+            }
+        });
+\end{lstlisting}
+
+\newpage
+
+\subsubsection{doctors.jsp}
+在医生信息管理界面，需要展示所有的医生信息，包括医生id，医生姓名，医生职级，医生简介，医生详细信息，科室id，科室名称，医生性别等字段，同时需要提供修改医生信息的功能。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/19.png}
+    \caption{医生信息管理界面}
+\end{figure}
+
+表格数据试试动态渲染，使用layui的table模块；修改医生信息设置信息列的edit值为textarea，修改部分使用js实现，与上面的类似，这里不再赘述。
+
+\begin{lstlisting}[frame=shadowbox]
+    table.render({...
+      url: 'http://localhost:8080/PalmHospitalService_war_exploded/DoctorServlet', // 此处为静态模拟数据，实际使用时需换成真实接口
+      ...
+      cols: [[{type: 'checkbox', fixed: 'left'},
+        {field:'did',width:150, title: '医生ID',sort:true},
+        {field:'departname',width:150, title: '科室名称'},
+        {field:'dname',width:150, title: '医生姓名'},
+        {field:'dlevel',width:150, title: '医生职称'},
+        {field:'dinfo', title: '医生信息',width:300,edit: 'textarea'},
+        {field:'ddetail',width:300, title: '详细信息',edit: 'textarea'},]],
+        ...
+    });
+\end{lstlisting}
+
+\newpage
+
+\subsubsection{schedules.jsp}
+
+在排班信息管理界面，需要展示所有的排班信息，包括排班id，医生id，排班时间，挂号费等字段，同时需要提供删除排班信息的功能，与预约信息管理界面类似。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/20.png}
+    \caption{排班信息管理界面}
+\end{figure}
+
+\begin{lstlisting}[frame=shadowbox]
+    table.render({...
+      url: 'http://localhost:8080/PalmHospitalService_war_exploded/ScheduleServlet', // 此处为静态模拟数据，实际使用时需换成真实接口
+      ...
+      cols: [[
+        {type: 'checkbox', fixed: 'left'},
+        {field:'sid',width:220, title: '排班ID', sort:true},
+        {field:'dname',width:220, title: '医生姓名'},
+        {field:'departname',width:220, title: '科室名称'},
+        {field:'time',width:250, title: '排班时间'},
+        {field:'price', title: '挂号价格',width:220},
+        {fixed: 'right', title:'操作', width: 80, minWidth: 80, toolbar: '#barDemo'}
+      ]],
+      ...
+    });
+\end{lstlisting}
+
+\newpage
+
 \subsection{预约挂号Web服务器详细设计}
+Web服务器需要处理两类业务，一类是移动端的业务，一类是后台管理的业务。那么对于上述业务，我们需要设计的包如下，设置两个包分别处理移动端和后台管理的业务。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/16.png}
+    \caption{包结构}
+\end{figure}
+
+\subsubsection{bean}
+包bean用于存放实体类，包括用户、医生、科室、排班、订单等实体类，其中一部分与数据库中单表的结构一致，另一部分是为了方便处理业务而设计的。
+
+包bean包含以下实体类：
+
+\begin{itemize}
+    \item Administrator：管理员实体类，包含管理员用户名，密码等字段
+    \item BackDoctors：后端医生实体类，包含医生id，医生姓名，医生职级，医生简介，医生详细信息等字段
+    \item BackOrders：后端预约实体类，包含预约id，用户id，用户姓名，科室名称，医生姓名，预约时间，挂号费等字段
+    \item BackSchedules：后端排班实体类，包含排班id，医生id，排班时间，挂号费等字段
+    \item Depart：科室实体类，包含科室id，科室名称等字段
+    \item Doctor：医生实体类，包含医生id，医生姓名，医生职级，医生简介，医生详细信息，科室id，科室名称，医生性别等字段
+    \item Order/Orders：两个不同用途的预约实体类
+    \item Schedule：排班实体类，包含排班id，医生id，排班时间，挂号费等字段
+    \item User：用户实体类，包含用户id，用户名，密码
+\end{itemize}
+
+\subsubsection{dao}
+包dao用于存放数据访问对象，包括用户、医生、科室、排班、订单等数据访问对象，其中一部分与数据库中单表的结构一致，另一部分是为了方便处理业务而设计的。
+
+包dao包含以下数据访问对象：
+
+\begin{itemize}
+    \item AdministratorDao：管理员数据访问对象，包含管理员用户名，密码等字段
+    \item BackDoctorsDao：后端医生数据访问对象，包含医生id，医生姓名，医生职级，医生简介，医生详细信息等字段
+    \item BackOrderDao：后端预约数据访问对象，包含预约id，用户id，用户姓名，科室名称，医生姓名，预约时间，挂号费等字段
+    \item BackSchedulesDao：后端排班数据访问对象，包含排班id，医生id，排班时间，挂号费等字段
+    \item DepartDao：科室数据访问对象，包含科室id，科室名称等字段
+    \item DoctorDao：医生数据访问对象，包含医生id，医生姓名，医生职级，医生简介，医生详细信息，科室id，科室名称，医生性别等字段
+    \item OrderDao：预约数据访问对象，包含预约id，用户id，用户姓名，科室名称，医生姓名，预约时间，挂号费等字段
+    \item ScheduleDao：排班数据访问对象，包含排班id，医生id，排班时间，挂号费等字段
+    \item UserDao：用户数据访问对象，包含用户id，用户名，密码
+\end{itemize}
+
+\subsubsection{Servlet}
+包Servlet用于存放移动端数据请求处理的Servlet，包括用户、医生、科室、排班、订单等Servlet
+
+包servlet包含以下servlet对象：
+
+\begin{itemize}
+    \item ChooseDepartServlet：选择科室Servlet，用于处理移动端选择科室的请求
+    \item ChooseDoctorServlet：选择医生Servlet，用于处理移动端选择医生的请求
+    \item ChooseTimeServlet：选择时间Servlet，用于处理移动端选择时间的请求
+    \item LoginServlet：登录Servlet，用于处理移动端登录的请求
+    \item MyInfoServlet：我的信息Servlet，用于处理移动端我的信息的请求
+    \item PayServlet：支付Servlet，用于处理移动端支付的请求
+    \item RegisterServlet：注册Servlet，用于处理移动端注册的请求
+\end{itemize}
+
+\subsubsection{backend}
+包backend用于存放后台管理数据请求处理的Servlet，包括用户、医生、科室、排班、订单等Servlet
+
+包backend包含以下servlet对象：
+
+\begin{itemize}
+    \item BackRegisterServlet：后台管理注册Servlet，用于处理后台管理注册的请求
+    \item DeleteOrdersServlet: 删除预约Servlet，用于处理后台管理删除预约的请求
+    \item DeleteSchedulesServlet：删除排班Servlet，用于处理后台管理删除排班的请求
+    \item DoctorServlet: 医生Servlet，用于处理后台管理医生的请求
+    \item LogoutServlet：注销Servlet，用于处理后台管理注销的请求
+    \item OrderServlet：预约Servlet，用于处理后台管理预约的请求
+    \item ScheduleServlet：排班Servlet，用于处理后台管理排班的请求
+    \item TestServlet: 登录Servlet，用于登录，由于一开始在该class上测试及运行故没有更改名字
+\end{itemize}
+
+其中servlet/backend包中的servlet类，都继承了HttpServlet类，重写了doGet和doPost方法，用于处理get和post请求，具体的实现方法如下：
+
+\begin{lstlisting}[frame=shadowbox]
+@WebServlet(name="XXXServlet",value="/XXXServlet")
+public class XXXServlet extends HttpServlet {
+    public XXXServlet (){
+        super();
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        // 设置GET方法的响应内容类型
+    }
+
+
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // 设置POST方法的响应内容类型
+        doGet(request, response);
+    }
+}
+\end{lstlisting}
+
+\subsubsection{utils}
+里面有用于连接数据库的工具类DBUtil
+
+\begin{lstlisting}[frame=shadowbox]
+package com.example.palmhospitalservice.utils;
+
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidDataSourceFactory;
+import org.apache.commons.dbutils.DbUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Properties;
+
+public class DbUtil {
+    private static DruidDataSource ds;
+    private static final ThreadLocal<Connection> THREAD_LOCAL = new ThreadLocal<>();
+
+    static {
+        Properties properties = new Properties();
+        InputStream inputStream = DbUtils.class.getResourceAsStream("/database.properties");
+        try {
+            properties.load(inputStream);
+            ds = (DruidDataSource) DruidDataSourceFactory.createDataSource(properties);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+    public static Connection getConnection() {
+
+        Connection connection = THREAD_LOCAL.get();
+
+        try {
+            if (connection == null) {
+                connection = ds.getConnection();
+
+                THREAD_LOCAL.set(connection);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+        return connection;
+    }
+    public static void begin() {
+        Connection connection = null;
+        connection = getConnection();
+        try {
+            connection.setAutoCommit(false);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void commit() {
+        Connection connection = null;
+        try {
+            connection = getConnection();
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeAll(connection, null, null);
+        }
+    }
+    public static void rollback() {
+        Connection connection = null;
+        try {
+            connection = getConnection();
+            connection.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeAll(connection, null, null);
+        }
+    }
+    public static void closeAll(Connection connection, Statement statement, ResultSet resultSet) {
+        try {
+            if (resultSet != null) {
+                resultSet.close();
+            }
+            if (statement != null) {
+                statement.close();
+            }
+            if (connection != null) {
+                connection.close();
+                THREAD_LOCAL.remove();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+\end{lstlisting}
+
+
+
+
 
 \newpage
 
