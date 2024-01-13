@@ -736,97 +736,125 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
 
 向后端请求科室数据，获取科室List，然后将科室List展示在列表中，用户点击列表中的某一项，跳转到医生列表界面，同时将用户选择的科室信息传递到医生列表界面，用于向后端请求医生列表数据。
 
-实现方法如下：
+涉及到的数据流：数据库->服务器->客户端。由于网络操作速度慢，需要将网络请求操作写在另外的线程中，得到数据之后，显示在客户端界面上。
 
-\begin{lstlisting}[frame=shadowbox]
-    public class DepartListAdapter extends BaseAdapter{
-        private List<Depart> mdeparts;
-        DepartListAdapter(List<Depart> departs){
-            mdeparts = departs;
-        }
-        @Override
-        public int getCount() {
-            return mdeparts.size();
-        }
+\begin{enumerate}
+    \item 向服务器请求科室数据
+    \\编写一个类，继承自AsyncTask，完成异步任务
+    \begin{lstlisting}[frame=shadowbox]
+    public class DepartAsyncTask extends AsyncTask<Void,Void, String> {
 
         @Override
-        public Object getItem(int i) {
-            return mdeparts.get(i);
+        protected String doInBackground(Void... params) {
+            result = NetUtil.requestDataByGet(baseurl);
+            return result;
         }
 
         @Override
-        public long getItemId(int i) {
-            return mdeparts.get(i).getDepartid();
-        }
-
-        @Override
-        public View getView(int i, View view, ViewGroup viewGroup) {
-
-            if(view == null){
-                LayoutInflater layoutInflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                view = layoutInflater.inflate(R.layout.item_depart_list_view,null);
-            }
-            TextView departName = view.findViewById(R.id.depart_name_tv);
-            departName.setText(mdeparts.get(i).getDepartname());
-
-            departName.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(ChooseDepartActivity.this,ChooseDoctorActivity.class);
-                    intent.putExtra("depart",new Gson().toJson(mdeparts.get(i)));
-                    startActivity(intent);
-
-
-                }
-            });
-
-            return view;
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            Gson gson = new Gson();
+            departs = gson.fromJson(result, new TypeToken<List<Depart>>() {}.getType());
+            departListView.setAdapter(new DepartListAdapter( departs));
         }
     }
-\end{lstlisting}
+    \end{lstlisting}
+
+    \begin{itemize}
+        \item 重写doInBackground方法，该方法在另外的线程中执行，用于向服务器请求数据，然后返回数据
+        \item 重写onPostExecute方法，该方法在主线程中执行，将数据从json格式转换成Gson格式，然后使用适配器将数据展示在列表中
+    \end{itemize}
+
+    \item 将数据展示在列表中
+    \\采用ListView控件，需要编写一个适配器。将数据展示在列表中，在layout文件夹中新建一个item\_depart\_list\_view.xml文件，用于展示列表中的每一项，然后编写一个适配器，将数据展示在列表中，同时为每一项添加点击事件，点击之后跳转到医生列表界面，同时将用户选择的科室信息传递到医生列表界面，用于向后端请求医生列表数据。
+
+    实现步骤如下：
+
+    \begin{enumerate}
+        \item 在layout中创建ListView
+        \item 创建每一行layout
+        \item 创建每一行数据
+        \item 用适配器将数据展示在ListView中
+    \end{enumerate}
+
+    编写一个类继承BaseAdapter，实现适配器的功能，为每个item添加点击监听时间，并将被点击的科室depart数据用intent传递给下一个activity。
+
+    \begin{lstlisting}[frame=shadowbox]
+        public class DepartListAdapter extends BaseAdapter{
+            private List<Depart> mdeparts;
+            DepartListAdapter(List<Depart> departs){
+                mdeparts = departs;
+            }
+            @Override
+            public int getCount() {
+                return mdeparts.size();
+            }
+    
+            @Override
+            public Object getItem(int i) {
+                return mdeparts.get(i);
+            }
+    
+            @Override
+            public long getItemId(int i) {
+                return mdeparts.get(i).getDepartid();
+            }
+    
+            @Override
+            public View getView(int i, View view, ViewGroup viewGroup) {
+    
+                if(view == null){
+                    LayoutInflater layoutInflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    view = layoutInflater.inflate(R.layout.item_depart_list_view,null);
+                }
+                TextView departName = view.findViewById(R.id.depart_name_tv);
+                departName.setText(mdeparts.get(i).getDepartname());
+    
+                departName.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(ChooseDepartActivity.this,ChooseDoctorActivity.class);
+                        intent.putExtra("depart",new Gson().toJson(mdeparts.get(i)));
+                        startActivity(intent);
+    
+    
+                    }
+                });
+    
+                return view;
+            }
+        }
+    \end{lstlisting}
+
+\end{enumerate}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/21.png}
+    \caption{选择科室界面}
+\end{figure}
+
+\newpage
 
 \textbf{选择医生}
 
-向后端请求医生数据，获取医生List，然后将医生List展示在列表中，用户点击列表中的某一项，跳转到排班时间选择界面，同时将用户选择的医生信息传递到排班时间选择界面，用于向后端请求排班时间数据。
+医生列表界面接收科室列表界面通过intent传递过来的科室信息，然后向后端请求医生数据，获取医生List，然后将医生List展示在列表中，列表实现的功能有
 
-实现方法如下：
+\begin{enumerate}
+    \item 用户点击列表中的某一项，跳转到医生详细信息界面
+    \item 用户点击预约按钮，跳转到选择时间界面
+\end{enumerate}
+
+因此需要对两个事件进行监听
 
 \begin{lstlisting}[frame=shadowbox]
     public class DoctorListAdapter extends BaseAdapter {
         private List<Doctor> mdoctors;
-        DoctorListAdapter(List<Doctor> doctors){
-            mdoctors = doctors;
-        }
-        @Override
-        public int getCount() {
-            return mdoctors.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return mdoctors.get(i);
-        }
-
-        @Override
-        public long getItemId(int i) {
-            return mdoctors.get(i).getDid();
-        }
-
+        ...
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
 
-            if(view == null){
-                LayoutInflater layoutInflater = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                view = layoutInflater.inflate(R.layout.item_doctor_list_view,null);
-            }
-            ImageView dimg = view.findViewById(R.id.dimg);
-            TextView dname = view.findViewById(R.id.dname);
-            TextView dlevel = view.findViewById(R.id.dlevel);
-            TextView dinfo = view.findViewById(R.id.dinfo);
-
-            LinearLayout btn_ddetail = view.findViewById(R.id.btn_ddetail);
-            Button btn_reverse = view.findViewById(R.id.btn_reverse);
-
+            ...
 
             if(mdoctors.get(i).getSex()==1){
                 dimg.setImageResource(R.mipmap.doctor_male);
@@ -862,6 +890,21 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
     }
 \end{lstlisting}
 
+\begin{figure}[htbp]
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{imgs/22.png}
+        \caption{选择医生界面}
+    \end{minipage}%
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{imgs/23.png}
+        \caption{医生详细信息界面}
+    \end{minipage}
+\end{figure}
+
+\newpage
+
 \textbf{医生详细介绍}
 
 医生详细介绍界面只是简单的展示医生的详细介绍，没有其他操作，只需要获取医生的数据，然后展示即可。
@@ -888,7 +931,6 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
         dlevel.setText(doctor.getDlevel());
         dinfo.setText(doctor.getDinfo());
         ddetail.setText(doctor.getDdetail());
-
         ImageView btn_back = findViewById(R.id.btn_back);
         btn_back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -901,12 +943,30 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
     }
 \end{lstlisting}
 
+\newpage
+
 \textbf{选择时间}
 
 根据选择的医生，向后端请求排班时间数据，获取排班时间List，然后将排班时间List展示在列表中，用户点击列表中的某一项，跳转到支付界面，同时将用户选择的排班时间信息传递到支付界面，用于向后端请求支付数据。实际的获取列表方式和前面一致，修改传入参数就可以了。
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/24.png}
+    \caption{选择时间界面}
+\end{figure}
+
+\newpage
+
 \subsubsection{支付界面}
+支付的实际功能需要调用支付系统的API，这一部分难以实现，故只做了一个简单的界面，用于展示用户选择的预约信息，用户点击支付按钮，提示用户支付成功，然后跳转到用户首页，对于支付操作进行了简单的模拟。
+
 支付界面展示之前的选择结果，设置两个按钮监听器，一个用于支付，一个用于取消支付，点击支付按钮，向后端请求支付数据，获取支付数据，然后调用支付接口，调用成功则提示用户支付成功，调用失败则提示用户支付失败，点击取消支付按钮，直接跳转到用户首页。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imgs/25.png}
+    \caption{支付界面}
+\end{figure}
 
 这里看一下两个按钮的监听器，支付按钮的监听器如下：
 
@@ -936,8 +996,6 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
     });
 \end{lstlisting}
 
-\newpage
-
 \subsubsection{我的信息界面}
 主要用于显示已经预约的结果，向后端请求预约数据，获取预约数据，然后将预约数据展示在列表中，用户点击列表中的某一项，跳转到预约详情界面，同时将用户选择的预约信息传递到预约详情界面，用于展示预约详情。
 
@@ -964,6 +1022,12 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
         new MyInfoActivity.MyinfoAsyncTask().execute();
     }
 \end{lstlisting}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.4\textwidth]{imgs/26.png}
+    \caption{我的信息界面}
+\end{figure}
 
 \newpage
 

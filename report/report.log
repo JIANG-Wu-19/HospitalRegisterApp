@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022) (preloaded format=xelatex 2022.11.21)  13 JAN 2024 01:39
+This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022) (preloaded format=xelatex 2022.11.21)  13 JAN 2024 20:14
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -640,32 +640,49 @@ File: imgs/13.png Graphic file (type bmp)
  [21] [22] [23]
 File: imgs/14.png Graphic file (type bmp)
 <imgs/14.png>
- [24] [25] [26] [27] [28] [29] [30] [31] [32] [33] [34] [35]
+ [24] [25] [26] [27] [28]
+File: imgs/21.png Graphic file (type bmp)
+<imgs/21.png>
+ [29] [30]
+File: imgs/22.png Graphic file (type bmp)
+<imgs/22.png>
+File: imgs/23.png Graphic file (type bmp)
+<imgs/23.png>
+ [31] [32]
+File: imgs/24.png Graphic file (type bmp)
+<imgs/24.png>
+ [33]
+File: imgs/25.png Graphic file (type bmp)
+<imgs/25.png>
+ [34] [35]
+File: imgs/26.png Graphic file (type bmp)
+<imgs/26.png>
+ [36] [37] [38] [39]
 File: imgs/17.png Graphic file (type bmp)
 <imgs/17.png>
- [36]
+ [40]
 File: imgs/18.png Graphic file (type bmp)
 <imgs/18.png>
- [37] [38] [39]
+ [41] [42] [43]
 File: imgs/19.png Graphic file (type bmp)
 <imgs/19.png>
- [40]
+ [44]
 File: imgs/20.png Graphic file (type bmp)
 <imgs/20.png>
- [41]
+ [45]
 File: imgs/16.png Graphic file (type bmp)
 <imgs/16.png>
- [42] [43] [44] [45] [46] [47] [48] [49] [50] [51] (./report.aux)
+ [46] [47] [48] [49] [50] [51] [52] [53] [54] [55] (./report.aux)
 Package rerunfilecheck Info: File `report.out' has not changed.
 (rerunfilecheck)             Checksum: A8A52C2AA4A3F3AD77A18A3E459A497E;5619.
  ) 
 Here is how much of TeX's memory you used:
- 17595 strings out of 476179
- 364928 string characters out of 5813071
+ 17651 strings out of 476179
+ 365747 string characters out of 5813071
  1181865 words of memory out of 5000000
- 38084 multiletter control sequences out of 15000+600000
+ 38134 multiletter control sequences out of 15000+600000
  474181 words of font info for 63 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 89i,17n,97p,365b,1759s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 89i,17n,97p,365b,1863s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on report.pdf (53 pages).
+Output written on report.pdf (57 pages).
