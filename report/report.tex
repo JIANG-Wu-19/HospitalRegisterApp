@@ -95,7 +95,7 @@
 \subsection{项目基本内容与要求}
 \begin{enumerate}
     \item 用Android开发看病预约客户端
-    \item 用JSP或PHP开发预约挂号Web服务器的后台数据库
+    \item 用JSP或PHP开发预约挂号Web服务器
     \item 用MySQL做预约挂号Web服务器的后台数据库
     \item 可以预约挂号、查看医生介绍及日程安排列表等功能
     \item 可以实现患者注册、登录功能
@@ -209,6 +209,7 @@
 包括以下几个界面：
 \begin{itemize}
     \item 登录界面
+    \item 注册界面
     \item 医生管理
     \item 排班管理
     \item 预约管理
@@ -355,7 +356,7 @@ myorder表的主要字段有oid，sid，did，分别代表订单id，排班id，
 \subsubsection{界面设计流程图}
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.65\textwidth]{imgs/3.png}
+    \includegraphics[width=0.7\textwidth]{imgs/3.png}
     \caption{Android看病预约客户端界面设计流程图}
 \end{figure}
 
@@ -1398,7 +1399,112 @@ Web服务器需要处理两类业务，一类是移动端的业务，一类是�
     \item TestServlet: 登录Servlet，用于登录，由于一开始在该class上测试及运行故没有更改名字
 \end{itemize}
 
-其中servlet/backend包中的servlet类，都继承了HttpServlet类，重写了doGet和doPost方法，用于处理get和post请求，具体的实现方法如下：
+bean包中的实体类定义了各个实体类的属性，并定义了相应的get和set方法，定义了重载的构造方法，用于初始化实体类对象。
+
+\begin{lstlisting}[frame=shadowbox]
+
+public class ABC {
+    
+    private String XXX;
+    private String YYY;
+    private String ZZZ;
+
+    public ABC() {
+
+    }
+
+    public ABC(String XXX, String YYY, String ZZZ) {
+        this.XXX = XXX;
+        this.YYY = YYY;
+        this.ZZZ = ZZZ;
+    }
+
+    public String getXXX() {
+        return XXX;
+    }
+
+    public void setXXX(String XXX) {
+        this.XXX = XXX;
+    }
+
+    public String getYYY() {
+        return YYY;
+    }
+
+    public void setYYY(String YYY) {
+        this.YYY = YYY;
+    }
+
+    public String getZZZ() {
+        return ZZZ;
+    }
+
+    public void setZZZ(String ZZZ) {
+        this.ZZZ = ZZZ;
+    }
+}
+
+\end{lstlisting}
+
+dao包中的数据访问对象定义了各个实体类的增删改查方法，用于对数据库进行操作，以管理员数据访问对象AdministratorDao为例：
+
+\begin{lstlisting}[frame=shadowbox]
+public class AdministratorDao {
+    private QueryRunner queryRunner = new QueryRunner();
+
+    public Administrator selectAdministratorByUser(String user){
+        Administrator administrator=null;
+        try{
+            administrator=queryRunner.query(DbUtil.getConnection(),"select * from administrator " +
+                    "where administrator.user=?;",new BeanHandler<Administrator>(Administrator.class),user);
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return administrator;
+    }
+
+    public int AddAdministrator(Administrator administrator){
+        int res=0;
+        try{
+            res=queryRunner.update(DbUtil.getConnection(),"insert into administrator values(?,?)",administrator.getUser(),administrator.getPassword());
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return res;
+    }
+}
+\end{lstlisting}
+
+dao的核心语句在于SQL语句编写，然后调用Dbutil方法连接MySQL数据库，然后调用QueryRunner方法执行SQL语句，最后返回结果。
+
+\begin{lstlisting}[frame=shadowbox]
+public class XXXDao{
+    private QueryRunner queryRunner = new QueryRunner();
+
+    public XXX selectXXXByXXX(String XXX){
+        XXX XXX=null;
+        try{
+            XXX=queryRunner.query(DbUtil.getConnection(),"select * from XXX " +
+                    "where XXX.XXX=?;",new BeanHandler<XXX>(XXX.class),XXX);
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return XXX;
+    }
+
+    public int AddXXX(XXX XXX){
+        int res=0;
+        try{
+            res=queryRunner.update(DbUtil.getConnection(),"insert into XXX values(?,?,?)",XXX.getXXX(),XXX.getYYY(),XXX.getZZZ());
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return res;
+    }
+}
+\end{lstlisting}
+
+servlet/backend包中的servlet类，都继承了HttpServlet类，重写了doGet和doPost方法，用于处理get和post请求，具体的实现方法如下：
 
 \begin{lstlisting}[frame=shadowbox]
 @WebServlet(name="XXXServlet",value="/XXXServlet")
@@ -1418,6 +1524,8 @@ public class XXXServlet extends HttpServlet {
     }
 }
 \end{lstlisting}
+
+
 
 \subsubsection{utils}
 里面有用于连接数据库的工具类DBUtil
@@ -1521,25 +1629,562 @@ public class DbUtil {
 }
 \end{lstlisting}
 
-
-
-
-
 \newpage
 
 \section{调试方法}
+
+\subsection{移动端调试方法}
+
+\subsubsection{Android端连接服务器失败}
+Android端build之后，应用正常启动，但是在登录的时候，提示账号密码错误，查看Logcat，发现如下错误：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/27.png}
+    \caption{Android端连接服务器失败}
+\end{figure}
+
+\begin{lstlisting}[frame=shadowbox]
+    java.net.SocketTimeoutException: failed to connect to /100.67.121.169 (port 8080) after 30000ms
+\end{lstlisting}
+
+报错指向的是虚拟机没有办法访问服务器的ip地址，同时地址不能使用127.0.0.1，因为127.0.0.1是虚拟机本身的地址，而不是主机的地址。
+
+原因是由于开发者电脑连接的是校园网Wifi，而不是有线的Ethernet，导致本机的ip地址发生了变化，因此需要修改Config类中的baseUrl，将ip地址修改为当前电脑的ip地址，然后重新build，即可解决问题。
+
+在cmd中输入ipconfig，查看本机的ip地址，如下图所示：
+
+\newpage
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/28.png}
+    \caption{查看本机ip地址}
+\end{figure}
+
+在Config.java中修改baseUrl，将ip地址修改为当前主机的ip地址
+
+\begin{lstlisting}[frame=shadowbox]
+public class Config {
+    public static String baseUrl ="http://100.65.5.15:8080/PalmHospitalService_war_exploded/";
+}
+\end{lstlisting}
+
+启动服务器后再重新编译运行Android端，即可解决问题。
+
+\subsubsection{Android端连接服务器成功，但是无法获取数据}
+
+Android端build之后，应用正常启动，但是在登录的时候，提示账号密码错误，查看Logcat，发现传递参数无误，因此将错误定位在服务器端，查看Servlet的方法
+
+\begin{lstlisting}[frame=shadowbox]
+    package com.example.palmhospitalservice.servlet;
+
+    import ...   
+    
+    public class LoginServlet extends HttpServlet {
+        ...
+    }
+\end{lstlisting}
+
+可以看到LoginServlet方法没有WebServlet注解，因此无法被访问，需要添加WebServlet注解，修改后的代码如下：
+
+\begin{lstlisting}[frame=shadowbox]
+    package com.example.palmhospitalservice.servlet;
+
+    import ...   
+    
+    @WebServlet(name = "LoginServlet", value = "/LoginServlet")
+    public class LoginServlet extends HttpServlet {
+        ...
+    }
+\end{lstlisting}
+
+Servlet API 3.0 引入了一个名为javax.servlet.annotation的新包，
+它提供了可用于注释 servlet 类的注释类型。
+注释可以替换 Web 部署描述符文件 （ web.xml ） 中的等效 XML 配置，
+例如 servlet 声明和 servlet 映射。
+Servlet 容器将在部署时处理带注释的类。
+注解@WebServlet用于声明一个servlet 类（该类仍然必须从HttpServlet类扩展）并为其配置映射，
+可以不用在web.xml里面配置servlet，只需要加上@WebServlet注解就可以修改该servlet的属性了。
+web.xml可以配置的servlet属性，在@WebServlet中都可以配置。
+
+\subsection{服务器端调试方法}
+\subsubsection{登录判断字符串为空}
+直接使用uid==null||upsw==null判断字符串为空，但是发现判断不成功，因此更改逻辑，在UserDao中进行select操作，如果返回的User对象为空，则说明用户名或密码错误，否则登录成功。
+
+\begin{lstlisting}[frame=shadowbox]
+    //UserDao
+    ...
+    public User select(String uid) {
+        User user = new User();
+        try {
+            user = queryRunner.query(DbUtil.getConnection(),"select * from user where uid=?",new BeanHandler<User>(User.class),uid);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return user;
+    }
+    ...
+    //LoginServlet
+    ...
+    UserDao userDao = new UserDao();
+    User user = userDao.login(uid,upsw);
+
+    PrintWriter writer=response.getWriter();
+    String result="";
+
+    if(user == null){   // 登录失败
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    }
+    else{       // 登录成功
+        response.setStatus(HttpServletResponse.SC_OK);
+        result= new Gson().toJson(user, User.class);        // 将user的数据变成json格式，传输给客户端
+        writer.write(result);
+        writer.flush();
+        writer.close();
+    }
+    ...    
+\end{lstlisting}
+
+\subsubsection{账号密码的传输安全问题}
+在登录的时候，如果使用GET方法，账号密码是以明文的形式传输的，在Servlet网址中就可以直接看到账号密码，因此需要使用POST方法，将账号密码以表单的形式传输，这样账号密码就不会以明文的形式传输，而是以表单的形式传输，这样就可以保证账号密码的安全性。
+
+\begin{lstlisting}[frame=shadowbox]
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        ...
+    }
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        doGet(request,response);
+    }
+\end{lstlisting}
+
+\subsection{前端页面调试}
+\subsubsection{前端动态渲染表格失败}
+在服务器启动的前提下，前端动态渲染表格依旧失败，查看Servlet方法返回数据正常，然而查看layui的表格接口数据文档发现，layui的表格接口数据需要满足以下格式：
+
+\begin{lstlisting}[frame=shadowbox]
+    {
+        "code": 0,
+        "msg": "",
+        "count": 1000,
+        "data": [{}, {}]
+    }
+\end{lstlisting}
+
+也就是说，除了数据满足json的键值对格式之外，前面还需要加上code，msg，count等字段，因此需要在Servlet方法中添加这些字段，修改后的代码如下：
+
+\begin{lstlisting}[frame=shadowbox]
+    result="{\"code\": 0,\"msg\": \"\",\n" +
+                "\"count\": "+ backDoctors.size()+",\n" +
+                "\"data\": " + data +"}";
+\end{lstlisting}
+
+然而，修改之后依旧无法动态渲染表格，怀疑是请求数据的url除了问题，修改为绝对路径后方解决问题
+
+\begin{lstlisting}[frame=shadowbox]
+    url: 'http://localhost:8080/PalmHospitalService_war_exploded/XXXServlet',
+\end{lstlisting}
 
 \newpage
 
 \section{测试结果}
 
+\subsection{移动端测试结果}
+\subsubsection{启动界面}
+在点击移动端应用程序图标后，启动界面如下图所示：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.2\textwidth]{imgs/10.png}
+    \caption{启动界面}
+\end{figure}
+
+\subsubsection{登录界面}
+启动程序之后，进入登录界面，登录失败和登录成功的界面如下图所示：
+
+\begin{figure}[htbp]
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.7\textwidth]{imgs/29.png}
+        \caption{登录失败界面}
+    \end{minipage}%
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.7\textwidth]{imgs/30.png}
+        \caption{登录成功界面}
+    \end{minipage}
+\end{figure}
+
+\subsubsection{注册界面}
+在登录界面点击注册按钮后，进入注册界面，注册成功和注册失败的界面如下图所示：
+
+\begin{figure}[htbp]
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.7\textwidth]{imgs/32.png}
+        \caption{注册失败界面}
+    \end{minipage}%
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.7\textwidth]{imgs/31.png}
+        \caption{注册成功界面}
+    \end{minipage}
+\end{figure}
+
+\subsubsection{首页界面}
+
+在登录成功之后，进入首页界面，首页界面如下图所示：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.25\textwidth]{imgs/13.png}
+    \caption{首页界面}
+\end{figure}
+
+\newpage
+
+\subsubsection{预约测试}
+
+\begin{figure}[htbp]
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.6\textwidth]{imgs/21.png}
+        \caption{选择科室界面}
+    \end{minipage}%
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.6\textwidth]{imgs/22.png}
+        \caption{选择医生界面}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[htbp]
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.6\textwidth]{imgs/24.png}
+        \caption{选择时间界面}
+    \end{minipage}%
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.6\textwidth]{imgs/23.png}
+        \caption{医生详情界面}
+    \end{minipage}
+\end{figure}
+
+\newpage
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.25\textwidth]{imgs/25.png}
+    \caption{支付界面}
+\end{figure}
+
+\subsubsection{我的信息界面}
+
+在首页界面点击我的信息按钮后，进入我的信息界面，我的信息界面如下图所示：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.3\textwidth]{imgs/26.png}
+    \caption{我的信息界面}
+\end{figure}
+
+\newpage
+
+\subsection{后台管理系统测试结果}
+
+\subsubsection{登录界面}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/33.png}
+    \caption{登录界面}
+\end{figure}
+
+\subsubsection{控制台界面}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/34.png}
+    \caption{控制台界面}
+\end{figure}
+
+\newpage
+
+\subsubsection{预约信息管理界面}
+取消预约功能测试结果如下图所示：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/35.png}
+    \caption{医生信息管理界面}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/36.png}
+    \caption{取消预约功能测试结果}
+\end{figure}
+
+\newpage
+
+\subsubsection{医生信息管理界面}
+修改医生信息功能测试结果如下图所示：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/37.png}
+    \caption{医生信息管理界面}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/38.png}
+    \caption{修改医生信息功能测试结果}
+\end{figure}
+
+\newpage
+
+\subsubsection{排班信息管理界面}
+取消排班功能测试结果如下图所示：
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/39.png}
+    \caption{排班信息管理界面}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/40.png}
+    \caption{取消排班功能测试结果}
+\end{figure}
+
 \newpage
 
 \section{心得体会}
 
+\subsection{熟悉移动端+后台管理系统+服务器的开发流程}
+在本次课程设计中，我需要掌握Android移动应用开发+Web Servlet开发+MySQL数据库开发，
+其中移动应用开发是我之前没有接触过的，前端Web页面开发自学过一些，但是没有实际开发经验。
+
+本次实战中，发现之前学习的知识并不能完全满足实际开发的需求，因此需要在实战中不断学习，不断查阅资料，不断调试，才能完成本次课程设计。
+本次实战中，快速掌握了Android移动应用开发+Web Servlet开发+MySQL数据库开发的开发流程，对于以后的开发有了一定的经验。
+
+\subsection{提升自己的动手能力}
+这次实践涉及到不少知识盲区，在这个过程中，查阅书籍、查阅教程、阅读官方文档和博客并学会应用等，克服了很多
+困难，也在这个不断学习的过程中锻炼了自己的自学能力。
+
+\subsection{增强系统开发能力}
+本学期学习了软件工程这门课程，在面向对象分析、设计中学习到的用例建模等知识在本次课程设计中得到了实践，对于软件开发有了更深的认识，
+自顶向下的开发方式，先分析需求，再设计系统，最后实现系统，这样的开发方式，可以提高开发效率，减少开发成本，提高软件质量。
+
+将系统划分为三大模块：移动端、后台管理系统、服务器，然后再将每个模块划分为多个子模块，分别实现，最后再将各个子模块整合到一起，这样的开发方式能够提高开发效率，减少开发成本，提高软件质量。
+
+\subsection{学会调试代码}
+在本次课程设计中，Android开发、Web服务器开发的接口输出需要规范，查看输出的过程中，发现输出的格式不符合要求，因此需要调试代码；
+调试代码的过程中，发现了很多问题，比如说，Android端连接服务器失败，Android端连接服务器成功，但是无法获取数据，账号密码的传输安全问题，前端动态渲染表格失败等等，通过调试代码，解决了这些问题，提高了自己的调试能力。
+
+\subsection{学会使用前端框架}
+在本次课程设计中，使用了layui前端框架，前端框架美化了前端页面，提高了开发效率，减少了开发成本，提高了软件质量，能够让我专注于业务逻辑的实现，而不是花费大量的时间在前端页面的开发上。
+
+\newpage
+
+\section{参考文献}
+
+\begin{enumerate}
+    \item Android开发者文档：https://developer.android.google.cn/?hl=zh-cn
+    \item Servlet开发者文档：https://www.dba.cn/book/servlet/
+    \item Layui文档：https://layui.dev/docs/2/
+    \item Bill Phillips Brian Hardy, Android 编程权威指南(第三版) [M],北京,人民邮电出版社2017
+\end{enumerate}
+
 \newpage
 
 \section{附录}
+\subsection{Android端代码清单}
+\subsubsection{java}
+\begin{itemize}
+    \item com.example.palmhospital.bean
+    \begin{itemize}
+        \item Depart.java
+        \item Doctor.java
+        \item Order.java
+        \item Schedule.java
+        \item User.java
+    \end{itemize}
+    \item com.example.palmhospital.ui.activity
+    \begin{itemize}
+        \item ChooseDepartActivity.java
+        \item ChooseDoctorActivity.java
+        \item ChooseTimeActivity.java
+        \item DoctorDetailActivity.java
+        \item IndexActivity.java
+        \item LoginActivity.java
+        \item MyInfoActivity.java
+        \item PayActivity.java
+        \item RegisterActivity.java
+        \item SplashActivity.java
+    \end{itemize}
+    \item com.example.palmhospital.utils
+    \begin{itemize}
+        \item NetUtil.java
+    \end{itemize}
+    \item Config.java
+\end{itemize}
+\subsubsection{res}
+主要列举layout的文件清单
+\begin{itemize}
+    \item activity\_choose\_depart.xml
+    \item activity\_choose\_doctor.xml
+    \item activity\_choose\_time.xml
+    \item activity\_doctor\_detail.xml
+    \item activity\_index.xml
+    \item activity\_login.xml
+    \item activity\_my\_info.xml
+    \item activity\_pay.xml
+    \item activity\_register.xml
+    \item activity\_splash.xml
+    \item item\_depart\_list\_view.xml
+    \item item\_doctor\_list\_view.xml
+    \item item\_myinfo\_list\_view.xml
+    \item item\_time\_list\_view.xml
+\end{itemize}
+
+\subsubsection{AndroidManifest.xml}
+AndroidManifest.xml文件是整个应用程序的信息描述文件，定义了应用程序中包含的Activity，Service，Content provider和BroadcastReceiver组件信息。
+
+\begin{lstlisting}[frame=shadowbox]
+    <?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.palmhospital">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/icon_zhangyi"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:roundIcon="@mipmap/icon_zhangyi"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PalmHospital">
+        <activity
+            android:name=".ui.activity.PayActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activity.DoctorDetailActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activity.ChooseTimeActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activity.MyInfoActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activity.ChooseDoctorActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activity.ChooseDepartActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activity.IndexActivity"
+            android:exported="true" />
+
+
+        <activity
+            android:name=".ui.activity.RegisterActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activity.LoginActivity"
+            android:exported="true" />
+        <activity
+            android:name=".ui.activity.SplashActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
+\end{lstlisting}
+
+\subsection{后台管理系统及服务器代码清单}
+\subsubsection{java}
+\begin{itemize}
+    \item com.example.palmhospitalservice.backend
+    \begin{itemize}
+        \item BackRegisterServlet.java
+        \item DeleteOrdersServlet.java
+        \item DeleteSchedulesServlet.java
+        \item DoctorServlet.java
+        \item LogoutServlet.java
+        \item OrderServlet.java
+        \item ScheduleServlet.java
+        \item TestServlet.java
+    \end{itemize}
+    \item com.example.palmhospitalservice.bean
+    \begin{itemize}
+        \item Administrator.java
+        \item BackDoctors.java
+        \item BackOrders.java
+        \item BackSchedules.java
+        \item Depart.java
+        \item Doctor.java
+        \item Order.java
+        \item Schedule.java
+        \item User.java
+    \end{itemize}
+    \item com.example.palmhospitalservice.dao
+    \begin{itemize}
+        \item AdministratorDao.java
+        \item BackDoctorsDao.java
+        \item BackOrderDao.java
+        \item BackSchedulesDao.java
+        \item DepartDao.java
+        \item DoctorDao.java
+        \item OrderDao.java
+        \item ScheduleDao.java
+        \item UserDao.java
+    \end{itemize}
+    \item com.example.palmhospitalservice.servlet
+    \begin{itemize}
+        \item ChooseDepartServlet.java
+        \item ChooseDoctorServlet.java
+        \item ChooseTimeServlet.java
+        \item LoginServlet.java
+        \item MyInfoServlet.java
+        \item PayServlet.java
+        \item RegisterServlet.java
+    \end{itemize}
+    \item com.example.palmhospitalservice.utils
+    \begin{itemize}
+        \item Dbutils.java
+    \end{itemize}
+\end{itemize}
+\subsubsection{resources}
+\begin{itemize}
+    \item database.properties
+\end{itemize}
+
+\subsubsection{webapp}
+\begin{itemize}
+    \item res 
+    \item WEB-INF/lib
+    \item controller.jsp
+    \item doctors.jsp
+    \item login.jsp
+    \item orders.jsp
+    \item register.jsp
+    \item schedules.jsp
+\end{itemize}
 
 \newpage
 
